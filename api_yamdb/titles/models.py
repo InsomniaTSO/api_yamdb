@@ -1,5 +1,3 @@
-from ast import Try
-from unicodedata import category
 from django.db import models
 
 
