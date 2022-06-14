@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 SAFE_ROLE = ['admin', 'moderator']
 
 
