@@ -11,7 +11,7 @@ class ReadOnly(permissions.BasePermission):
 
 
 class IsAdminModerOrSelf(permissions.BasePermission):
-    """Разрешение на редактирование только автором или админом"""
+    """Разрешение на редактирование только автором, модератором или админом"""
     message = 'Изменение и удаление чужого контента запрещено!'
 
     def has_object_permission(self, request, view, obj):
@@ -36,3 +36,12 @@ class IsSelf(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
                 or obj == request.user)
+
+
+class AuthorOrReadOnly(permissions.BasePermission):
+    """Разрешение на редактирование только автору"""
+    message = 'Доступ только у автора!'
+
+    def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS
+                or obj.author == request.user)
