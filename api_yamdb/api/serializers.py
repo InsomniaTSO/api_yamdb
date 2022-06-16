@@ -8,7 +8,7 @@ from users.models import User
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов"""
     author = serializers.SlugRelatedField(
-        slug='username',
+        slug_field='username',
         queryset=User.objects.all(),
     )
 
