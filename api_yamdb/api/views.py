@@ -63,11 +63,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
         comment.delete()
 
 
-class UserViewSet (viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes=[IsAdmin]
+    permission_classes = [IsAdmin]
 
     @action(methods=['get', 'patch'],
             detail=False,
