@@ -30,9 +30,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
             title=title
         )
 
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
-
     def perform_destroy(self, instance):
         title = self.title_object()
         review_id = self.kwargs.get('pk')
@@ -58,9 +55,6 @@ class CommentsViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=review
         )
-
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
 
     def perform_destroy(self, instance):
         review = self.review_object()
