@@ -1,14 +1,17 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins, filters
 from rest_framework.decorators import action
 
 from users.models import User
-from titles.models import Comment, Review
+from titles.models import Comment, Review, Category, Genre, Title
 from .permissions import IsSelf, IsAdmin, IsAdminModerOrSelf
 from .serializers import (
     CommentSerializer,
     ReviewSerializer,
-    UserSerializer
+    UserSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer
 )
 
 
@@ -60,3 +63,28 @@ class UserViewSet (viewsets.ModelViewSet):
     def me(self, request, pk=None):
         user = self.request.user
         return user
+
+
+class CustomViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.DestroyModelMixin,
+                    viewsets.GenericViewSet):
+    pass
+
+
+class CategoryViewSet(CustomViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
+
+
+class GenreViewSet(CustomViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
