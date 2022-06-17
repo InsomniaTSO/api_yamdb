@@ -34,12 +34,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
             title=title
         )
 
-    def perform_destroy(self, instance):
-        title = self.title_object()
-        review_id = self.kwargs.get('pk')
-        review = get_object_or_404(Review, title=title, id=review_id)
-        review.delete()
-
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
@@ -59,12 +53,6 @@ class CommentsViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=review
         )
-
-    def perform_destroy(self, instance):
-        review = self.review_object()
-        comment_id = self.kwargs.get('pk')
-        comment = get_object_or_404(Comment, review=review, id=comment_id)
-        comment.delete()
 
 
 class UserViewSet(viewsets.ModelViewSet):
