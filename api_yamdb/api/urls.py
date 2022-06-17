@@ -1,7 +1,8 @@
+from django.db import router
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import CommentsViewSet, ReviewViewSet, UserViewSet
+from .views import CommentsViewSet, ReviewViewSet, UserViewSet, CategoryViewSet, GenreViewSet, TitleViewSet
 
 user_router = DefaultRouter()
 user_router.register('users', UserViewSet, basename='user')
@@ -17,7 +18,9 @@ models_router.register(
     CommentsViewSet,
     basename='comments'
 )
-
+models_router.register('categories', CategoryViewSet, basename='category')
+models_router.register('genres', GenreViewSet, basename='genre')
+models_router.register('titles', TitleViewSet, basename='title')
 
 urlpatterns = [
     path('v1/users', include(user_router.urls)),
