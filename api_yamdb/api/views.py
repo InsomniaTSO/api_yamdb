@@ -11,7 +11,8 @@ from .serializers import (
     UserSerializer,
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer
+    TitleSerializer,
+    TitleReadSerializer
 )
 
 
@@ -105,3 +106,17 @@ class GenreViewSet(CustomViewSet):
     filter_backends = [filters.SearchFilter]
     lookup_field = 'slug'
     search_fields = ('=name',)
+
+
+class TitleViewSet(CustomViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleSerializer
