@@ -1,14 +1,23 @@
-from django.shortcuts import get_object_or_404
+from multiprocessing import AuthenticationError
+from rest_framework.pagination import PageNumberPagination
+from django.core.mail import send_mail
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework import generics, status
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from rest_framework_simplejwt.views import TokenObtainPairView
 from users.models import User
 from titles.models import Comment, Review
 from .permissions import IsSelf, IsAdmin, IsAdminModerOrSelf
 from .serializers import (
     CommentSerializer,
     ReviewSerializer,
-    UserSerializer
+    UserSerializer,
+    SignupSerializer,
+    TokenSerializer
 )
 
 
@@ -50,7 +59,9 @@ class UserViewSet (viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes=[IsAdmin]
+    permission_classes=(IsAdmin,)
+    search_fields = ('username',)
+    pagination_class = PageNumberPagination
 
     @action(methods=['get', 'patch'],
             detail=False,
@@ -58,5 +69,34 @@ class UserViewSet (viewsets.ModelViewSet):
             url_path='me',
             permission_classes=[IsSelf])
     def me(self, request, pk=None):
-        user = self.request.user
+        if not request.user.is_authenticated:
+            raise AuthenticationError (
+                'Пользователь не авторизован'
+            )
+        user = request.user
         return user
+    
+
+class SignupView(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user_data = serializer.data
+        user = User.objects.get(username=user_data['username'])
+        email_body = 'Здравствуйте '+ user.username + \
+            f' Используйте код ниже чтобы варифицировать вашу почту \n' + user.confirmation_code
+        send_mail('Verify your email', email_body, 'from@example.com',
+                [user.email])
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TokenAPIView(TokenObtainPairView):
+    permission_classes = (AllowAny,)
+    serializer_class = TokenSerializer
+
