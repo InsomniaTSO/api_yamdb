@@ -1,16 +1,17 @@
 from multiprocessing import AuthenticationError
 from rest_framework.pagination import PageNumberPagination
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, mixins, filters
 from rest_framework.decorators import action
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework_simplejwt.views import TokenObtainPairView
 from users.models import User
-from titles.models import Comment, Review
+from titles.models import Comment, Review, Title, Category, Genre
 from .permissions import IsSelf, IsAdmin, IsAdminModerOrSelf
 from .serializers import (
     CommentSerializer,
@@ -18,41 +19,49 @@ from .serializers import (
     UserSerializer,
     SignupSerializer,
     TokenSerializer
-)
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer,
+    TitleReadSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminModerOrSelf,)
 
+    def title_object(self):
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+
     def get_queryset(self):
-        pass
+        title = self.title_object()
+        return title.reviews.all()
 
     def perform_create(self, serializer):
-        pass
-
-    def perform_update(self, serializer):
-        pass
-
-    def perform_destroy(self, instance):
-        pass
+        title = self.title_object()
+        serializer.save(
+            author=self.request.user,
+            title=title
+        )
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAdminModerOrSelf,)
 
+    def review_object(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Review, title=title)
+
     def get_queryset(self):
-        pass
+        review = self.review_object()
+        return review.comments.all()
 
     def perform_create(self, serializer):
-        pass
-
-    def perform_update(self, serializer):
-        pass
-
-    def perform_destroy(self, instance):
-        pass
+        review = self.review_object()
+        serializer.save(
+            author=self.request.user,
+            review=review
+        )
 
 
 class UserViewSet (viewsets.ModelViewSet):
@@ -75,8 +84,7 @@ class UserViewSet (viewsets.ModelViewSet):
             )
         user = request.user
         return user
-    
-
+  
 class SignupView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
@@ -100,3 +108,41 @@ class TokenAPIView(TokenObtainPairView):
     permission_classes = (AllowAny,)
     serializer_class = TokenSerializer
 
+
+class CustomViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.DestroyModelMixin,
+                    viewsets.GenericViewSet):
+    pass
+
+
+class CategoryViewSet(CustomViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
+
+
+class GenreViewSet(CustomViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
+
+
+class TitleViewSet(CustomViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
+    search_fields = ('=name',)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleSerializer
