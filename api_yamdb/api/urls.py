@@ -7,7 +7,6 @@ from .views import CommentsViewSet, ReviewViewSet, UserViewSet, CategoryViewSet,
 
 user_router = DefaultRouter()
 user_router.register('users', UserViewSet, basename='user')
-
 models_router = DefaultRouter()
 models_router.register(
     r'titles/(?P<title_id>\d+)/reviews',
@@ -28,3 +27,4 @@ urlpatterns = [
     path('v1/', include(models_router.urls)),
     path('v1/auth/signup/', SignupView.as_view(), name='signup'),
     path('v1/auth/token/', TokenAPIView.as_view(), name='token'),
+]
