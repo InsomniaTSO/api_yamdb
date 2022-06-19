@@ -1,3 +1,5 @@
+from django_filters.rest_framework import DjangoFilterBackend
+
 from multiprocessing import AuthenticationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -10,6 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .filter import TitleFilter
 from users.models import User
 from titles.models import Comment, Review, Title, Category, Genre
 from .permissions import IsSelf, IsAdmin, IsAdminModerOrSelf
@@ -18,11 +21,12 @@ from .serializers import (
     ReviewSerializer,
     UserSerializer,
     SignupSerializer,
-    TokenSerializer
+    TokenSerializer,
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
     TitleReadSerializer
+)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -136,11 +140,9 @@ class GenreViewSet(CustomViewSet):
 
 class TitleViewSet(CustomViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [IsAdmin]
-    filter_backends = [filters.SearchFilter]
-    lookup_field = 'slug'
-    search_fields = ('=name',)
+    permission_classes = [IsAdminModerOrSelf]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
