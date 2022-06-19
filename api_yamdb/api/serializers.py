@@ -2,10 +2,8 @@ import json
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, exceptions
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import update_last_login
 from rest_framework_simplejwt.settings import api_settings
 
@@ -42,8 +40,8 @@ class CommentSerializer(serializers.ModelSerializer):
             'id', 'text',
             'author', 'pub_date',
         )
-        
-        
+
+
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий."""
 
@@ -84,7 +82,8 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
+                  'category')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -96,7 +95,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email',
             'first_name', 'last_name',
             'bio', 'role'
-        )  
+        )
 
     def validate_username(self, username):
         if 'me' == username.lower():
@@ -104,11 +103,11 @@ class UserSerializer(serializers.ModelSerializer):
                 'Имя "me" использовать запрещено!'
             )
         return username
-    
+
     def validate(self, attrs):
         user = self.context['request'].user
         if 'role' in attrs and user.role == 'user':
-            role=attrs.pop('role')
+            role = attrs.pop('role')
         return attrs
 
 
@@ -117,7 +116,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email',]
+        fields = ['username', 'email', ]
 
     def validate_username(self, username):
         if 'me' == username.lower():
@@ -125,7 +124,7 @@ class SignupSerializer(serializers.ModelSerializer):
                 'Имя "me" использовать запрещено!'
             )
         return username
-      
+
     def validate_password(self, password):
         return make_password(password)
 
@@ -144,14 +143,14 @@ class SignupSerializer(serializers.ModelSerializer):
 class TokenSerializer(TokenObtainPairSerializer):
     username = serializers.CharField(max_length=255)
     confirmation_code = serializers.CharField(max_length=128)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['password'].required = False
 
     def validate(self, attrs):
-        username=attrs.get('username')
-        confirmation_code=attrs.pop('confirmation_code')
+        username = attrs.get('username')
+        confirmation_code = attrs.pop('confirmation_code')
         user = get_object_or_404(User, username=username)
         attrs.update({'password': ''})
         if user.confirmation_code != confirmation_code:
