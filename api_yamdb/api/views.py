@@ -1,6 +1,5 @@
-from multiprocessing import AuthenticationError
-from re import T
-from requests import request
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
@@ -11,19 +10,26 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from .filter import TitleFilter
 from users.models import User
-from .permissions import IsSelfOrAdmin, IsAdmin, IsAdminModerOrSelf
+from .permissions import (
+    IsSelfOrAdmin,
+    IsAdmin,
+    IsAdminModerOrSelf,
+    IsAdminOrReadOnly
+)
 from titles.models import Comment, Review, Title, Category, Genre
 from .serializers import (
     CommentSerializer,
     ReviewSerializer,
     UserSerializer,
     SignupSerializer,
-    TokenSerializer
+    TokenSerializer,
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
     TitleReadSerializer
+)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -69,7 +75,7 @@ class UserViewSet (viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes=(IsAdmin,)
+    permission_classes = (IsAdmin,)
     search_fields = ('username',)
     pagination_class = PageNumberPagination
 
@@ -81,14 +87,15 @@ class UserViewSet (viewsets.ModelViewSet):
     def me(self, request, *args, **kwargs):
         user = request.user
         if request.method == 'PATCH':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer = self.get_serializer(
+                user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)      
+            return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-  
+
 class SignupView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
@@ -101,10 +108,10 @@ class SignupView(generics.GenericAPIView):
         serializer.save()
         user_data = serializer.data
         user = User.objects.get(username=user_data['username'])
-        email_body = 'Здравствуйте '+ user.username + \
+        email_body = 'Здравствуйте ' + user.username + \
             f' Используйте код ниже чтобы варифицировать вашу почту \n' + user.confirmation_code
         send_mail('Verify your email', email_body, 'from@example.com',
-                [user.email])
+                  [user.email])
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -123,7 +130,7 @@ class CustomViewSet(mixins.CreateModelMixin,
 class CategoryViewSet(CustomViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter]
     lookup_field = 'slug'
     search_fields = ('=name',)
@@ -132,7 +139,7 @@ class CategoryViewSet(CustomViewSet):
 class GenreViewSet(CustomViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter]
     lookup_field = 'slug'
     search_fields = ('=name',)
@@ -140,11 +147,9 @@ class GenreViewSet(CustomViewSet):
 
 class TitleViewSet(CustomViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [IsAdmin]
-    filter_backends = [filters.SearchFilter]
-    lookup_field = 'slug'
-    search_fields = ('=name',)
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
