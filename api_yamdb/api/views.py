@@ -1,4 +1,6 @@
 from multiprocessing import AuthenticationError
+from re import T
+from requests import request
 from rest_framework.pagination import PageNumberPagination
 from django.core.mail import send_mail
 from rest_framework import viewsets
@@ -6,12 +8,11 @@ from rest_framework.decorators import action
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from users.models import User
 from titles.models import Comment, Review
-from .permissions import IsSelf, IsAdmin, IsAdminModerOrSelf
+from .permissions import IsSelfOrAdmin, IsAdmin, IsAdminModerOrSelf
 from .serializers import (
     CommentSerializer,
     ReviewSerializer,
@@ -67,15 +68,17 @@ class UserViewSet (viewsets.ModelViewSet):
             detail=False,
             url_name='me',
             url_path='me',
-            permission_classes=[IsSelf])
-    def me(self, request, pk=None):
-        if not request.user.is_authenticated:
-            raise AuthenticationError (
-                'Пользователь не авторизован'
-            )
+            permission_classes=(IsSelfOrAdmin,))
+    def me(self, request, *args, **kwargs):
         user = request.user
-        return user
-    
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)      
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
 class SignupView(generics.GenericAPIView):
     queryset = User.objects.all()

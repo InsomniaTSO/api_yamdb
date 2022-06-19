@@ -18,13 +18,15 @@ class User(AbstractUser):
         (MODERATOR, 'moderator'),
     ]
 
+    class Meta:
+        ordering = ('username',)
+
     username = models.CharField(db_index=True,
                                 max_length=150,
                                 unique=True)
-
-    
+                               
     email = models.EmailField(
-        _('email address'),
+        'Почта',
         unique=True,
         max_length=254,
     )

@@ -1,5 +1,6 @@
 from multiprocessing import AuthenticationError
-from rest_framework import permissions
+import re
+from rest_framework import permissions, status
 
 
 SAFE_ROLE = ['admin', 'moderator']
@@ -27,25 +28,29 @@ class IsAdmin(permissions.BasePermission):
     message = 'Доступ только у администаратора!'
 
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            raise AuthenticationError(
-                'Пользователь не авторизован'
+        if (request.user and request.user.is_authenticated):
+            return (request.user.role == 'admin' 
+                    or request.user.is_superuser
             )
-        return (request.user.role == 'admin' 
-                or request.user.is_superuser)
+        return False
 
     def has_object_permission(self, request, view, obj):
         return (request.user.role == 'admin' 
                 or request.user.is_superuser)
 
 
-class IsSelf(permissions.BasePermission):
+class IsSelfOrAdmin(permissions.BasePermission):
     """Разрешение на редактирование только владельцем"""
     message = 'Доступ только у владельца!'
 
+    def has_permission(self, request, view):
+        return(request.user and request.user.is_authenticated)
+
     def has_object_permission(self, request, view, obj):
-        return (request.method in permissions.SAFE_METHODS
-                or obj == request.user)
+        return (request.method in permissions.SAFE_METHODS 
+                or obj == request.user 
+                or request.user.role == 'admin'
+                )
 
 
 class AuthorOrReadOnly(permissions.BasePermission):
