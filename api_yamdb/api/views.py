@@ -36,6 +36,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminModerOrSelf,)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['title'] = self.kwargs['title_id']
+        return context
+
     def title_object(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
