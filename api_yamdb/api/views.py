@@ -17,7 +17,8 @@ from .permissions import (
     IsSelfOrAdmin,
     IsAdmin,
     IsAdminModerOrSelf,
-    IsAdminOrReadOnly
+    IsAdminOrReadOnly,
+    ReadOnlyForUnauthorized
 )
 from titles.models import Comment, Review, Title, Category, Genre
 from .serializers import (
@@ -35,7 +36,7 @@ from .serializers import (
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminModerOrSelf,)
+    permission_classes = (ReadOnlyForUnauthorized,)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -59,7 +60,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminModerOrSelf,)
+    permission_classes = (ReadOnlyForUnauthorized,)
 
     def review_object(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
