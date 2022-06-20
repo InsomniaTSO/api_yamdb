@@ -79,6 +79,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True
     )
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title
@@ -86,14 +87,14 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор чтения произведений."""
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
-                  'category')
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):

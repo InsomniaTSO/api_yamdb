@@ -62,10 +62,10 @@ class AuthorOrReadOnly(permissions.BasePermission):
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """Разрешение на редактирование только админу."""
-    message = 'Доступ только у автора!'
+    """Разрешение на редактирование только админу, остальным только чтение."""
+    message = 'Доступ на только у автора!'
 
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated
-                and request.user.role == 'admin')
+                or (request.user.is_authenticated
+                    and request.user.role == 'admin'))
