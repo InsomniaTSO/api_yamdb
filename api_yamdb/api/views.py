@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -150,13 +151,15 @@ class GenreViewSet(CustomViewSet):
     search_fields = ('=name',)
 
 
-class TitleViewSet(CustomViewSet):
+class TitleViewSet(mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   CustomViewSet):
     queryset = Title.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
+        if self.request.method in permissions.SAFE_METHODS:
             return TitleReadSerializer
         return TitleSerializer
