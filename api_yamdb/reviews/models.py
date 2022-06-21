@@ -12,25 +12,34 @@ SCORE_CHOICES = (
 
 
 class Category(models.Model):
+    """Модель категории."""
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self) -> str:
         return self.name
 
 
 class Genre(models.Model):
+    """Модель жанра."""
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self) -> str:
         return self.name
 
 
 class Title(models.Model):
+    """Модель произведения."""
     name = models.CharField(max_length=100)
     year = models.PositiveSmallIntegerField()
-    rating = models.FloatField(blank=True, null=True)
+    rating = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(Genre, blank=True)
     category = models.ForeignKey(
@@ -40,11 +49,15 @@ class Title(models.Model):
         on_delete=models.SET_NULL
     )
 
+    class Meta:
+        ordering = ('name',)
+
     def __str__(self) -> str:
         return self.name[:10]
 
 
 class Review(models.Model):
+    """Модель отзыва."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -72,9 +85,11 @@ class Review(models.Model):
                 name='unique_title_author'
             )
         ]
+        ordering = ('pub_date',)
 
 
 class Comment(models.Model):
+    """Модель комментария."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
@@ -90,6 +105,9 @@ class Comment(models.Model):
         auto_now_add=True,
         db_index=True
     )
+
+    class Meta:
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.text[:10]

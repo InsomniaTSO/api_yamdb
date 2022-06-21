@@ -1,13 +1,14 @@
 import json
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers, exceptions
+
 from django.contrib.auth.base_user import BaseUserManager
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import update_last_login
+from django.shortcuts import get_object_or_404
+from rest_framework import exceptions, serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
-from titles.models import Comment, Review, Category, Genre, Title
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
@@ -90,11 +91,23 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор чтения произведений."""
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.FloatField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def get_rating(self, obj):
+        reviews = obj.reviews.all()
+        rating_list = []
+        for review in reviews:
+            score = review.score
+            rating_list.append(score)
+        if len(rating_list) == 0:
+            rating = None
+        else:
+            rating = sum(rating_list) / len(rating_list)
+        return rating
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -118,12 +131,12 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         if 'role' in attrs and user.role == 'user':
-            role = attrs.pop('role')
+            attrs.pop('role')
         return attrs
 
 
 class SignupSerializer(serializers.ModelSerializer):
-    """Сериализатор регистрации пользователя"""
+    """Сериализатор регистрации пользователя."""
 
     class Meta:
         model = User
@@ -152,6 +165,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(TokenObtainPairSerializer):
+    """Сериализатор получения токена."""
     username = serializers.CharField(max_length=255)
     confirmation_code = serializers.CharField(max_length=128)
 

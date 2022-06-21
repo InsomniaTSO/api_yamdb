@@ -1,5 +1,7 @@
 from django.contrib.auth.backends import ModelBackend
+
 from .models import User
+
 
 class AuthenticationWithoutPassword(ModelBackend):
 
