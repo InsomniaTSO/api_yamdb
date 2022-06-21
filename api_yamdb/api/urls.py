@@ -14,6 +14,7 @@ from .views import (
 
 user_router = DefaultRouter()
 user_router.register('users', UserViewSet, basename='user')
+
 models_router = DefaultRouter()
 models_router.register(
     r'titles/(?P<title_id>\d+)/reviews',

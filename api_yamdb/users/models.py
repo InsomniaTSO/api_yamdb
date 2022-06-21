@@ -3,6 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Переопределение модели пользователя."""
 
     USER = 'user'
     ADMIN = 'admin'

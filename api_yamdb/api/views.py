@@ -1,40 +1,27 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions
-
-from rest_framework.pagination import PageNumberPagination
-from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, mixins, filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import (filters, generics, mixins, permissions, status,
+                            viewsets)
 from rest_framework.decorators import action
-from rest_framework import generics, status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .filter import TitleFilter
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from .permissions import (
-    IsSelfOrAdmin,
-    IsAdmin,
-    IsAdminModerOrSelf,
-    IsAdminOrReadOnly,
-    ReadOnlyForUnauthorized
-)
-from titles.models import Comment, Review, Title, Category, Genre
-from .serializers import (
-    CommentSerializer,
-    ReviewSerializer,
-    UserSerializer,
-    SignupSerializer,
-    TokenSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    TitleReadSerializer
-)
+from .filter import TitleFilter
+from .permissions import (IsAdmin, IsAdminOrReadOnly, IsSelfOrAdmin,
+                          ReadOnlyForUnauthorized)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, SignupSerializer,
+                          TitleReadSerializer, TitleSerializer,
+                          TokenSerializer, UserSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Представление модели отзывов."""
     serializer_class = ReviewSerializer
     permission_classes = (ReadOnlyForUnauthorized,)
 
@@ -59,6 +46,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
+    """Представление модели комментов."""
     serializer_class = CommentSerializer
     permission_classes = (ReadOnlyForUnauthorized,)
 
@@ -84,6 +72,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet (viewsets.ModelViewSet):
+    """Представление модели пользователей."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
@@ -109,6 +98,7 @@ class UserViewSet (viewsets.ModelViewSet):
 
 
 class SignupView(generics.GenericAPIView):
+    """Представление регистрации нового пользователя."""
     queryset = User.objects.all()
     serializer_class = SignupSerializer
     permission_classes = (AllowAny,)
@@ -121,13 +111,15 @@ class SignupView(generics.GenericAPIView):
         user_data = serializer.data
         user = User.objects.get(username=user_data['username'])
         email_body = 'Здравствуйте ' + user.username + \
-            f' Используйте код ниже чтобы варифицировать вашу почту \n' + user.confirmation_code
+            ' Используйте код ниже чтобы варифицировать вашу почту \n' +  \
+            user.confirmation_code
         send_mail('Verify your email', email_body, 'from@example.com',
                   [user.email])
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenAPIView(TokenObtainPairView):
+    """Представление получения токена пользователем."""
     permission_classes = (AllowAny,)
     serializer_class = TokenSerializer
 
@@ -136,10 +128,12 @@ class CustomViewSet(mixins.CreateModelMixin,
                     mixins.ListModelMixin,
                     mixins.DestroyModelMixin,
                     viewsets.GenericViewSet):
+    """Кастомный вьюсет для создания, вывода списка и удаления."""
     pass
 
 
 class CategoryViewSet(CustomViewSet):
+    """Представление модели категории."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -149,6 +143,7 @@ class CategoryViewSet(CustomViewSet):
 
 
 class GenreViewSet(CustomViewSet):
+    """Представление модели жантра."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -160,6 +155,7 @@ class GenreViewSet(CustomViewSet):
 class TitleViewSet(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    CustomViewSet):
+    """Представление модели произведения."""
     queryset = Title.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
