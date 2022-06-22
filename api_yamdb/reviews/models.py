@@ -5,8 +5,11 @@ from django.core.validators import MaxValueValidator
 
 from users.models import User
 
+
 now = datetime.datetime.now()
 CNT_1 = 10
+TEN_CONSTANT = 10
+FIFTEEN_CONSTANT = 15
 
 SCORE_CHOICES = (
     (1, 1), (2, 2),
@@ -75,14 +78,14 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.IntegerField(choices=SCORE_CHOICES)
+    score = models.PositiveSmallIntegerField(choices=SCORE_CHOICES)
     pub_date = models.DateField(
         auto_now_add=True,
         db_index=True
     )
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:FIFTEEN_CONSTANT]
 
     class Meta:
         constraints = [
@@ -116,4 +119,4 @@ class Comment(models.Model):
         ordering = ('pub_date',)
 
     def __str__(self):
-        return self.text[:10]
+        return self.text[:TEN_CONSTANT]

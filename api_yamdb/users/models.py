@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+SAFE_ROLE = ['admin', 'moderator']
+
 
 class User(AbstractUser):
     """Переопределение модели пользователя."""
@@ -14,13 +16,6 @@ class User(AbstractUser):
         (ADMIN, 'admin'),
         (MODERATOR, 'moderator'),
     ]
-
-    class Meta:
-        ordering = ('username',)
-
-    username = models.CharField(db_index=True,
-                                max_length=150,
-                                unique=True)
 
     email = models.EmailField(
         'Почта',
@@ -58,5 +53,21 @@ class User(AbstractUser):
         blank=True
     )
 
+    class Meta:
+        ordering = ('username',)
+
+    username = models.CharField(db_index=True,
+                                max_length=150,
+                                unique=True)
+
     def __str__(self):
         return self.username
+
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    def is_admin(self):
+        return self.role == 'admin'
+
+    def is_user(self):
+        return self.role == 'user'

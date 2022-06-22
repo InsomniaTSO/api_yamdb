@@ -29,7 +29,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context['title'] = self.kwargs['title_id']
+        context['title'] = self.kwargs.get('title_id')
         return context
 
     def title_object(self):
@@ -73,7 +73,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
         )
 
 
-class UserViewSet (viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """Представление модели пользователей."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -112,9 +112,9 @@ class SignupView(generics.GenericAPIView):
         serializer.save()
         user_data = serializer.data
         user = User.objects.get(username=user_data['username'])
-        email_body = 'Здравствуйте ' + user.username + \
-            ' Используйте код ниже чтобы варифицировать вашу почту \n' +  \
-            user.confirmation_code
+        email_body = (f'Здравствуйте {user.username}. Используйте код ниже,'
+                      ' чтобы верифицировать вашу почту:\n'
+                      f'{user.confirmation_code}')
         send_mail('Verify your email', email_body, 'from@example.com',
                   [user.email])
         return Response(serializer.data, status=status.HTTP_200_OK)
