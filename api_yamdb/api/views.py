@@ -1,7 +1,8 @@
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (filters, generics, mixins, permissions, status,
+from rest_framework import (filters, generics, permissions, status,
                             viewsets)
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -18,6 +19,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignupSerializer,
                           TitleReadSerializer, TitleSerializer,
                           TokenSerializer, UserSerializer)
+from .mixins import CustomViewSet_1, CustomViewSet_2
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -124,15 +126,7 @@ class TokenAPIView(TokenObtainPairView):
     serializer_class = TokenSerializer
 
 
-class CustomViewSet(mixins.CreateModelMixin,
-                    mixins.ListModelMixin,
-                    mixins.DestroyModelMixin,
-                    viewsets.GenericViewSet):
-    """Кастомный вьюсет для создания, вывода списка и удаления."""
-    pass
-
-
-class CategoryViewSet(CustomViewSet):
+class CategoryViewSet(CustomViewSet_1):
     """Представление модели категории."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -142,7 +136,7 @@ class CategoryViewSet(CustomViewSet):
     search_fields = ('=name',)
 
 
-class GenreViewSet(CustomViewSet):
+class GenreViewSet(CustomViewSet_1):
     """Представление модели жантра."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -152,11 +146,10 @@ class GenreViewSet(CustomViewSet):
     search_fields = ('=name',)
 
 
-class TitleViewSet(mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   CustomViewSet):
+class TitleViewSet(CustomViewSet_2):
     """Представление модели произведения."""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(
+        Avg("reviews__score")).order_by('name')
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
