@@ -2,6 +2,9 @@ from django.db import models
 
 from users.models import User
 
+TEN_CONSTANT = 10
+FIFTEEN_CONSTANT = 15
+
 SCORE_CHOICES = (
     (1, 1), (2, 2),
     (3, 3), (4, 4),
@@ -53,7 +56,7 @@ class Title(models.Model):
         ordering = ('name',)
 
     def __str__(self) -> str:
-        return self.name[:10]
+        return self.name[:TEN_CONSTANT]
 
 
 class Review(models.Model):
@@ -69,14 +72,14 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.IntegerField(choices=SCORE_CHOICES)
+    score = models.PositiveSmallIntegerField(choices=SCORE_CHOICES)
     pub_date = models.DateField(
         auto_now_add=True,
         db_index=True
     )
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:FIFTEEN_CONSTANT]
 
     class Meta:
         constraints = [
@@ -110,4 +113,4 @@ class Comment(models.Model):
         ordering = ('pub_date',)
 
     def __str__(self):
-        return self.text[:10]
+        return self.text[:TEN_CONSTANT]
