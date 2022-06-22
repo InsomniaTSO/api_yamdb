@@ -130,7 +130,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if 'role' in attrs and user.role == 'user':
+        if 'role' in attrs and user.is_user():
             attrs.pop('role')
         return attrs
 
@@ -140,7 +140,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', ]
+        fields = ('username', 'email')
 
     def validate_username(self, username):
         if 'me' == username.lower():
@@ -185,10 +185,7 @@ class TokenSerializer(TokenObtainPairSerializer):
             self.username_field: attrs[self.username_field],
             "password": attrs["password"],
         }
-        try:
-            authenticate_kwargs["request"] = self.context["request"]
-        except KeyError:
-            pass
+        authenticate_kwargs["request"] = self.context.get('request')
         self.user = User.objects.get(username=authenticate_kwargs['username'])
         if not api_settings.USER_AUTHENTICATION_RULE(self.user):
             raise exceptions.AuthenticationFailed(
