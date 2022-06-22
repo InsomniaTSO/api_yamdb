@@ -12,14 +12,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from .filter import TitleFilter
+from reviews.filter import TitleFilter
 from .permissions import (IsAdmin, IsAdminOrReadOnly, IsSelfOrAdmin,
                           ReadOnlyForUnauthorized)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignupSerializer,
                           TitleReadSerializer, TitleSerializer,
                           TokenSerializer, UserSerializer)
-from .mixins import CustomViewSet_1, CustomViewSet_2
+from .mixins import CustomGenreCategoryViewSet, CustomTitleViewSet
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -126,7 +126,7 @@ class TokenAPIView(TokenObtainPairView):
     serializer_class = TokenSerializer
 
 
-class CategoryViewSet(CustomViewSet_1):
+class CategoryViewSet(CustomGenreCategoryViewSet):
     """Представление модели категории."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -136,7 +136,7 @@ class CategoryViewSet(CustomViewSet_1):
     search_fields = ('=name',)
 
 
-class GenreViewSet(CustomViewSet_1):
+class GenreViewSet(CustomGenreCategoryViewSet):
     """Представление модели жантра."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -146,7 +146,7 @@ class GenreViewSet(CustomViewSet_1):
     search_fields = ('=name',)
 
 
-class TitleViewSet(CustomViewSet_2):
+class TitleViewSet(CustomTitleViewSet):
     """Представление модели произведения."""
     queryset = Title.objects.all().annotate(
         Avg("reviews__score")).order_by('name')

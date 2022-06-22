@@ -7,7 +7,6 @@ from users.models import User
 
 
 now = datetime.datetime.now()
-CNT_1 = 10
 TEN_CONSTANT = 10
 FIFTEEN_CONSTANT = 15
 
@@ -22,11 +21,13 @@ SCORE_CHOICES = (
 
 class Category(models.Model):
     """Модель категории."""
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField('Название категории', max_length=256)
+    slug = models.SlugField('Слаг названия', max_length=50, unique=True)
 
     class Meta:
         ordering = ('name',)
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self) -> str:
         return self.name
@@ -34,11 +35,13 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанра."""
-    name = models.CharField(max_length=50)
-    slug = models.SlugField(unique=True)
+    name = models.CharField('Название жанра', max_length=50)
+    slug = models.SlugField('Слаг названия', unique=True)
 
     class Meta:
         ordering = ('name',)
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self) -> str:
         return self.name
@@ -46,23 +49,27 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель произведения."""
-    name = models.CharField(max_length=100)
+    name = models.CharField('Название произведения', max_length=100)
     year = models.PositiveSmallIntegerField(
+        'Год выпуска',
         validators=[MaxValueValidator(now.year)])
-    description = models.TextField(blank=True)
-    genre = models.ManyToManyField(Genre, blank=True)
+    description = models.TextField('Описание', blank=True)
+    genre = models.ManyToManyField(Genre, blank=True, verbose_name='Жанр')
     category = models.ForeignKey(
         Category,
         blank=True,
         null=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        verbose_name='Категория'
     )
 
     class Meta:
         ordering = ('name',)
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
     def __str__(self) -> str:
-        return self.name[CNT_1]
+        return self.name[TEN_CONSTANT]
 
 
 class Review(models.Model):
@@ -70,16 +77,19 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
+        verbose_name='Отзыв'
     )
-    text = models.TextField()
+    text = models.TextField('Текст отзыва',)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
+        verbose_name='Автор'
     )
     score = models.PositiveSmallIntegerField(choices=SCORE_CHOICES)
     pub_date = models.DateField(
+        'Дата публикации',
         auto_now_add=True,
         db_index=True
     )
@@ -95,6 +105,8 @@ class Review(models.Model):
             )
         ]
         ordering = ('pub_date',)
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -102,21 +114,26 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
+        verbose_name='Комментарий'
     )
-    text = models.TextField()
+    text = models.TextField('Текст комментария',)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
+        verbose_name='Автор'
     )
     pub_date = models.DateField(
+        'Дата публикации',
         auto_now_add=True,
         db_index=True
     )
 
     class Meta:
         ordering = ('pub_date',)
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text[:TEN_CONSTANT]
