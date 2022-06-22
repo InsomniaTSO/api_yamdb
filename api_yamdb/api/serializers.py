@@ -80,7 +80,6 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True
     )
-    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title
@@ -91,23 +90,13 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор чтения произведений."""
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        rating_list = []
-        for review in reviews:
-            score = review.score
-            rating_list.append(score)
-        if len(rating_list) == 0:
-            rating = None
-        else:
-            rating = sum(rating_list) / len(rating_list)
-        return rating
 
 
 class UserSerializer(serializers.ModelSerializer):

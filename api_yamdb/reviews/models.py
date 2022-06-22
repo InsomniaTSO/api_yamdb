@@ -1,6 +1,12 @@
+import datetime
+
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 from users.models import User
+
+now = datetime.datetime.now()
+CNT_1 = 10
 
 SCORE_CHOICES = (
     (1, 1), (2, 2),
@@ -38,8 +44,8 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведения."""
     name = models.CharField(max_length=100)
-    year = models.PositiveSmallIntegerField()
-    rating = models.IntegerField(blank=True, null=True)
+    year = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(now.year)])
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(Genre, blank=True)
     category = models.ForeignKey(
@@ -53,7 +59,7 @@ class Title(models.Model):
         ordering = ('name',)
 
     def __str__(self) -> str:
-        return self.name[:10]
+        return self.name[CNT_1]
 
 
 class Review(models.Model):
