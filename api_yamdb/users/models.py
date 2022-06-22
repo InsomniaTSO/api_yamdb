@@ -56,7 +56,7 @@ class User(AbstractUser):
     username = models.CharField(db_index=True,
                                 max_length=150,
                                 unique=True)
-    
+
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'
