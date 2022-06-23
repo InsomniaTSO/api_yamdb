@@ -7,6 +7,7 @@ from users.models import User
 
 
 now = datetime.datetime.now()
+
 TEXT_COMMENT = 10
 TEXT_TITLE = 10
 TEXT_REVIEW = 15
