@@ -7,8 +7,9 @@ from users.models import User
 
 
 now = datetime.datetime.now()
-TEN_CONSTANT = 10
-FIFTEEN_CONSTANT = 15
+TEXT_COMMENT = 10
+TEXT_TITLE = 10
+TEXT_REVIEW = 15
 
 SCORE_CHOICES = (
     (1, 1), (2, 2),
@@ -69,7 +70,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self) -> str:
-        return self.name[TEN_CONSTANT]
+        return self.name[:TEXT_TITLE]
 
 
 class Review(models.Model):
@@ -95,7 +96,7 @@ class Review(models.Model):
     )
 
     def __str__(self):
-        return self.text[:FIFTEEN_CONSTANT]
+        return self.text[:TEXT_REVIEW]
 
     class Meta:
         constraints = [
@@ -136,4 +137,4 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text[:TEN_CONSTANT]
+        return self.text[:TEXT_COMMENT]
